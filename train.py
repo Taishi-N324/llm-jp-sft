@@ -18,6 +18,21 @@ disable_caching()
 
 logger = logging.getLogger(__name__)
 
+from torch.optim.lr_scheduler import CosineAnnealingLR
+
+class CustomCosineAnnealingLR(CosineAnnealingLR):
+    def __init__(self, optimizer, T_max, eta_min=0, last_epoch=-1, verbose=False):
+        super().__init__(optimizer, T_max, eta_min, last_epoch, verbose)
+
+
+class CustomSFTTrainer(SFTTrainer):
+    def create_optimizer_and_scheduler(self, num_training_steps: int):
+        self.optimizer = self.create_optimizer()
+        self.lr_scheduler = CustomCosineAnnealingLR(
+            self.optimizer,
+            T_max=num_training_steps,
+            eta_min=1e-6  
+        )
 
 @dataclass
 class SFTTrainingArguments:
@@ -167,7 +182,7 @@ def main() -> None:
             model.enable_input_require_grads()
 
     logger.info("Setting up trainer")
-    trainer = SFTTrainer(
+    trainer = CustomSFTTrainer(
         model,
         args=training_args,
         tokenizer=tokenizer,
