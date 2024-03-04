@@ -199,6 +199,7 @@ def main() -> None:
         eval_dataset = None
     
     training_args.save_steps = len(train_dataset) // 128
+    training_args.gradient_checkpointing=True,
 
     logger.info("Formatting prompts")
     collator = DataCollatorForCompletionOnlyLM(
